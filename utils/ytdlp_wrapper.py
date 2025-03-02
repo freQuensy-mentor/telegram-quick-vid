@@ -3,8 +3,14 @@ from concurrent.futures import ThreadPoolExecutor
 import yt_dlp
 import os
 
+
 class AsyncYTDLPWrapper:
-    def __init__(self, download_path: str = "downloads", max_concurrent_downloads: int = 3, use_ffmpeg: bool = True):
+    def __init__(
+        self,
+        download_path: str = "downloads",
+        max_concurrent_downloads: int = 3,
+        use_ffmpeg: bool = True,
+    ):
         """
         Инициализация асинхронной обертки yt-dlp
         :param download_path: Папка для сохранения файлов
@@ -24,10 +30,7 @@ class AsyncYTDLPWrapper:
         :param formats: Список словарей с форматами видео
         :return: Отфильтрованный список
         """
-        return [
-            fmt for fmt in formats
-            if isinstance(fmt.get("filesize"), (int, float))
-        ]
+        return [fmt for fmt in formats if isinstance(fmt.get("filesize"), (int, float))]
 
     async def get_format(self, url: str):
         """
@@ -60,7 +63,13 @@ class AsyncYTDLPWrapper:
             ]
             return formats
 
-    async def download(self, url: str, best: bool = True, audio_only: bool = False, format_id: str = None):
+    async def download(
+        self,
+        url: str,
+        best: bool = True,
+        audio_only: bool = False,
+        format_id: str = None,
+    ):
         """
         Асинхронно скачивает видео или аудио с ограничением по параллельным загрузкам.
         :param url: URL видео
@@ -84,17 +93,19 @@ class AsyncYTDLPWrapper:
         """
         ydl_opts = {
             "outtmpl": os.path.join(self.download_path, "%(title)s.%(ext)s"),
-            "quiet": False,
+            "quiet": True,
         }
 
         if audio_only:
             ydl_opts["format"] = "bestaudio/best"
             if self.use_ffmpeg:
-                ydl_opts["postprocessors"] = [{
-                    "key": "FFmpegExtractAudio",
-                    "preferredcodec": "mp3",
-                    "preferredquality": "192",
-                }]
+                ydl_opts["postprocessors"] = [
+                    {
+                        "key": "FFmpegExtractAudio",
+                        "preferredcodec": "mp3",
+                        "preferredquality": "192",
+                    }
+                ]
         elif best:
             ydl_opts["format"] = "bestvideo+bestaudio/best"
         elif format_id:
